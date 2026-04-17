@@ -1,0 +1,428 @@
+/* =========================================
+   1. VARIABEL TEMA & WARNA (SPRING GARDEN)
+   ========================================= */
+:root {
+    --primary: #2e7d32;       /* Hijau Utama */
+    --primary-dark: #1b5e20;  /* Hijau Gelap */
+    --accent: #81c784;        /* Hijau Muda */
+    --bg-body: #f4f9f4;       /* Latar belakang terang kehijauan */
+    --bg-card: #ffffff;
+    --text-main: #2c3e50;
+    --text-muted: #7f8c8d;
+    --shadow: 0 10px 30px rgba(46, 125, 50, 0.1);
+    --radius: 16px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.light-mode {
+    --particle-color: rgba(76, 175, 80, 0.8);
+    
+    /* Warna Pohon Siang (Hijau Rimbun) */
+    --leaf-main: #4caf50;
+    --leaf-alt: #81c784;
+    --leaf-dark: #388e3c;
+    --trunk-color: #5d4037;
+    --rope-color: #3e2723;
+    
+    /* Variabel Modal Siang */
+    --modal-bg: rgba(255, 255, 255, 0.95);
+    --modal-border: rgba(0, 0, 0, 0.1);
+}
+
+.dark-mode {
+    --bg-body: #1a1a1a;
+    --bg-card: #2d2d2d;
+    --text-main: #f5f5f5;
+    --text-muted: #bdc3c7;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    --particle-color: #ffffff;
+    
+    /* Warna Pohon Malam (Siluet Gelap) */
+    --leaf-main: #141b21;
+    --leaf-alt: #1a252c;
+    --leaf-dark: #0f1418;
+    --trunk-color: #05080a;
+    --rope-color: #555555;
+    
+    /* Variabel Modal Malam */
+    --modal-bg: rgba(30, 30, 30, 0.95);
+    --modal-border: rgba(255, 255, 255, 0.1);
+}
+
+/* =========================================
+   2. RESET & PENGATURAN DASAR
+   ========================================= */
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+    font-family: 'Plus Jakarta Sans', sans-serif; 
+}
+
+body { 
+    background-color: var(--bg-body); 
+    color: var(--text-main); 
+    transition: var(--transition); 
+    overflow-x: hidden; 
+    min-height: 100vh; 
+}
+
+/* =========================================
+   3. ANIMASI LATAR BELAKANG & POHON (SVG)
+   ========================================= */
+.background-container { 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    pointer-events: none; 
+    z-index: 0; 
+    overflow: hidden; 
+}
+
+.tree-wrapper {
+    position: fixed;
+    bottom: 0;
+    left: -40px;
+    width: 450px;
+    height: auto;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.85;
+    transition: var(--transition);
+}
+
+@media (max-width: 768px) {
+    .tree-wrapper { width: 280px; left: -70px; }
+}
+
+.swing-group { animation: swingAnim 4s ease-in-out infinite; }
+
+@keyframes swingAnim { 
+    0% { transform: rotate(4deg); } 
+    50% { transform: rotate(-4deg); } 
+    100% { transform: rotate(4deg); } 
+}
+
+.light-mode .background-container::before { 
+    content: ''; 
+    position: absolute; 
+    top: -15%; 
+    left: -10%; 
+    width: 60vw; 
+    height: 60vw; 
+    background: radial-gradient(circle, rgba(129, 199, 132, 0.2) 0%, transparent 70%); 
+    border-radius: 50%; 
+    animation: pulseSun 8s infinite alternate ease-in-out; 
+}
+
+@keyframes pulseSun { 
+    0% { transform: scale(1); opacity: 0.7; } 
+    100% { transform: scale(1.15); opacity: 1; } 
+}
+
+.cloud {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 50px;
+    filter: blur(4px);
+    animation: floatCloud linear infinite;
+    z-index: 1;
+    opacity: 0;
+}
+
+@keyframes floatCloud {
+    0% { transform: translateX(-15vw); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateX(110vw); opacity: 0; }
+}
+
+.dandelion { 
+    position: absolute; 
+    font-size: 1.5rem; 
+    top: -10vh; 
+    animation: float linear infinite; 
+    opacity: 0; 
+    user-select: none;
+    z-index: 3;
+}
+
+@keyframes float { 
+    0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0; } 
+    10% { opacity: 0.9; } 
+    90% { opacity: 0.9; } 
+    100% { transform: translateY(110vh) translateX(var(--end-x)) rotate(360deg); opacity: 0; } 
+}
+
+.static-star { 
+    position: absolute; width: 2px; height: 2px; background: #ffffff; 
+    border-radius: 50%; box-shadow: 0 0 5px #ffffff; 
+    animation: twinkle 3s infinite alternate ease-in-out; 
+}
+
+@keyframes twinkle { 
+    0% { opacity: 0.1; transform: scale(0.8); } 
+    100% { opacity: 1; transform: scale(1.3); } 
+}
+
+.shooting-star { 
+    position: absolute; width: 120px; height: 2px; 
+    background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%); 
+    top: -10vh; animation: streak linear forwards; opacity: 0; 
+}
+
+.shooting-star::after { 
+    content: ''; position: absolute; top: -2px; right: 0; width: 6px; height: 6px; 
+    background: #ffffff; border-radius: 50%; box-shadow: 0 0 15px 4px rgba(255, 255, 255, 0.8); 
+}
+
+@keyframes streak { 
+    0% { transform: translate(0, 0) rotate(135deg); opacity: 0; } 
+    10% { opacity: 1; } 
+    100% { transform: translate(-100vh, 100vh) rotate(135deg); opacity: 0; } 
+}
+
+/* =========================================
+   4. LAYOUT UTAMA & GRID DASHBOARD
+   ========================================= */
+.app-container { 
+    max-width: 1100px; margin: 0 auto; padding: 2rem 1rem; 
+    position: relative; z-index: 1; 
+}
+
+header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+.logo h1 { font-size: 1.5rem; color: var(--primary); }
+
+@media (min-width: 850px) { 
+    main { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; } 
+    .card { margin-bottom: 0; } 
+}
+
+/* =========================================
+   5. KOTAK ELEMEN (CARDS) & TAB MENU
+   ========================================= */
+.card { 
+    background: var(--bg-card); padding: 2rem; border-radius: var(--radius); 
+    box-shadow: var(--shadow); margin-bottom: 1.5rem; transition: var(--transition); position: relative; 
+}
+
+.tabs { 
+    display: flex; gap: 10px; background: rgba(0,0,0,0.05); padding: 5px; 
+    border-radius: 12px; margin-bottom: 1.5rem; 
+}
+
+.tab-btn { 
+    flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; 
+    background: transparent; color: var(--text-muted); font-weight: 600; transition: var(--transition); 
+}
+
+.tab-btn.active { 
+    background: var(--bg-card); color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+}
+
+/* =========================================
+   6. OPSI PILIHAN POT & INPUT FORM
+   ========================================= */
+.grid-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; }
+.opt-card { padding: 1.5rem 1rem; border: 2px solid transparent; background: rgba(46, 125, 50, 0.05); border-radius: 12px; cursor: pointer; text-align: center; transition: var(--transition); }
+.opt-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+.opt-card h4, .opt-card p { color: var(--text-main); transition: var(--transition); }
+.opt-card p { font-size: 0.85rem; margin-top: 5px; }
+.opt-card.selected { border-color: var(--primary); background: rgba(46, 125, 50, 0.1); }
+
+.input-section { display: none; }
+.input-section.active { display: block; animation: fadeIn 0.5s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.input-group { margin-bottom: 1rem; }
+.input-group label { display: block; font-size: 0.85rem; margin-bottom: 5px; color: var(--text-muted); }
+.input-group input, select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.1); background: var(--bg-body); color: var(--text-main); }
+
+/* =========================================
+   7. TOMBOL & AREA HASIL
+   ========================================= */
+.btn-primary { width: 100%; padding: 1rem; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 1.5rem; position: relative; overflow: hidden; }
+.btn-primary:active { transform: scale(0.98); }
+.btn-secondary { width: 100%; padding: 12px; margin-top: 20px; background: transparent; border: 2px solid var(--primary); color: var(--primary); border-radius: 10px; font-weight: 600; cursor: pointer; transition: var(--transition); }
+.btn-secondary:hover { background: var(--primary); color: white; }
+
+.pop-anim { position: absolute; pointer-events: none; animation: popOut 0.6s ease-out forwards; }
+@keyframes popOut { 0% { transform: scale(0) rotate(0); opacity: 1; } 100% { transform: scale(2) rotate(45deg); opacity: 0; } }
+
+.result-container { display: flex; flex-direction: column; gap: 1.5rem; }
+.hidden { display: none !important; }
+
+/* =========================================
+   8. VISUALISASI 2D/3D & STATS
+   ========================================= */
+.visual-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.view-toggle { display: flex; gap: 5px; background: rgba(0,0,0,0.05); padding: 3px; border-radius: 8px; }
+.view-btn { padding: 5px 12px; border: none; border-radius: 6px; cursor: pointer; background: transparent; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); transition: var(--transition); }
+.view-btn.active { background: var(--bg-card); color: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+
+.canvas-container { position: relative; width: 100%; height: 250px; border-radius: 12px; overflow: hidden; background: rgba(0,0,0,0.02); }
+canvas { width: 100%; height: 100%; }
+#pot3D { width: 100%; height: 100%; position: absolute; top: 0; left: 0; cursor: grab; }
+#pot3D:active { cursor: grabbing; }
+
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.stat-item { display: flex; flex-direction: column; padding-bottom: 10px; border-bottom: 1px solid rgba(0,0,0,0.05); }
+.stat-item span { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;}
+.stat-item strong { font-size: 1.3rem; color: var(--primary); }
+
+.canvas-tooltip { position: fixed; background: rgba(0, 0, 0, 0.85); color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+.canvas-tooltip.visible { opacity: 1; }
+
+/* =========================================
+   9. PAPAN MENUJU RUMUS & THEME TOGGLE
+   ========================================= */
+.tavern-sign-wrapper { position: absolute; top: -15px; right: 25px; width: 150px; height: 45px; z-index: 50; cursor: pointer; transition: transform 0.2s; }
+.tavern-sign-wrapper:hover { transform: scale(1.05); }
+.rope { position: absolute; top: -10px; width: 4px; height: 20px; background: #555; z-index: -1; }
+.rope-left { left: 20px; } .rope-right { right: 20px; }
+.tavern-sign { width: 100%; height: 100%; position: relative; }
+.sign-front { position: absolute; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; border-radius: 8px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); padding: 5px; text-align: center; background: #8B4513; border: 3px solid #5C2E0B; color: #fff; font-size: 0.95rem; font-weight: 700; }
+
+.btn-icon { position: relative; width: 45px; height: 45px; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 50%; }
+.icon-sun, .icon-moon { position: absolute; font-size: 1.6rem; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+.light-mode .icon-sun { opacity: 1; transform: translateY(0) rotate(0deg); }
+.light-mode .icon-moon { opacity: 0; transform: translateY(30px) rotate(90deg); }
+.dark-mode .icon-sun { opacity: 0; transform: translateY(-30px) rotate(-90deg); }
+.dark-mode .icon-moon { opacity: 1; transform: translateY(0) rotate(0deg); }
+
+/* =========================================
+   10. MODAL RUANG RUMUS & DARK MODE overrides
+   ========================================= */
+.dark-mode .opt-card { background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255, 255, 255, 0.1); }
+.dark-mode .opt-card h4, .dark-mode .opt-card p { color: #ffffff; }
+.dark-mode .opt-card.selected { border-color: var(--primary); background: rgba(76, 175, 80, 0.15); }
+.dark-mode .stat-item { border-bottom: 1px solid rgba(255, 255, 255, 0.15); }
+.dark-mode .card { background: #333333; border: 1px solid rgba(255, 255, 255, 0.05); }
+
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px);
+    z-index: 1000; display: flex; align-items: center; justify-content: center;
+    opacity: 1; visibility: visible; transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+.modal-overlay.close-state { opacity: 0; visibility: hidden; pointer-events: none; }
+.modal-content {
+    background: var(--modal-bg); color: var(--text-main); width: 90%; max-width: 700px;
+    max-height: 90vh; overflow-y: auto; border-radius: var(--radius); padding: 2rem;
+    position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 1px solid var(--modal-border);
+    transform: scale(1); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.modal-overlay.close-state .modal-content { transform: scale(0.9); }
+
+.close-modal-btn { position: absolute; top: 20px; right: 20px; background: transparent; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; transition: color 0.2s; }
+.close-modal-btn:hover { color: #e74c3c; }
+.modal-header { margin-bottom: 2rem; border-bottom: 2px solid var(--primary); padding-bottom: 1rem; }
+.modal-header h2 { color: var(--primary); font-size: 1.8rem; margin-bottom: 10px; }
+.modal-header p { color: var(--text-muted); font-size: 0.95rem; }
+
+.formula-card { background: rgba(0,0,0,0.03); border-left: 4px solid var(--primary); padding: 1.5rem; margin-bottom: 1.5rem; border-radius: 0 12px 12px 0; }
+.dark-mode .formula-card { background: rgba(255,255,255,0.03); }
+.formula-card h3 { margin-bottom: 10px; font-size: 1.1rem; }
+.formula-card p { font-size: 0.9rem; line-height: 1.6; margin-bottom: 15px; color: var(--text-muted); }
+.math-box { background: var(--bg-body); padding: 15px; border-radius: 8px; text-align: center; border: 1px solid var(--modal-border); overflow-x: auto; margin-bottom: 15px; }
+.formula-legend { list-style: none; font-size: 0.85rem; color: var(--text-muted); }
+.formula-legend li { margin-bottom: 8px; padding-left: 15px; position: relative; }
+.formula-legend li::before { content: '•'; color: var(--primary); position: absolute; left: 0; font-weight: bold; }
+
+/* =========================================
+   11. FITUR GARDENER & BUKU 3D FLIP
+   ========================================= */
+#gardener-trigger-container {
+    position: fixed; bottom: 20px; left: 20px; z-index: 100;
+    display: flex; flex-direction: column; align-items: center;
+    cursor: pointer; transition: transform 0.3s ease;
+}
+#gardener-trigger-container:hover { transform: scale(1.05); }
+
+.speech-bubble {
+    position: relative; background: #fff; border-radius: 20px; padding: 10px 15px;
+    border: 2px solid #8B4513; margin-bottom: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); max-width: 150px;
+}
+.speech-bubble p { margin: 0; color: #333; font-size: 0.8rem; font-weight: bold; text-align: center; }
+.speech-bubble::after { content: ''; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); border-width: 10px 10px 0; border-style: solid; border-color: #fff transparent transparent transparent; z-index: 1; }
+.speech-bubble::before { content: ''; position: absolute; bottom: -13px; left: 50%; transform: translateX(-50%); border-width: 11px 11px 0; border-style: solid; border-color: #8B4513 transparent transparent transparent; z-index: 0; }
+
+.gardener-avatar {
+    font-size: 45px; background: radial-gradient(circle, #e8f5e9 0%, #a5d6a7 100%);
+    border: 3px solid #8B4513; border-radius: 50%; width: 70px; height: 70px;
+    display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+}
+
+.book-wrapper {
+    position: relative; display: flex; justify-content: center; align-items: center;
+    perspective: 1500px; width: 100%; height: 100%;
+}
+
+.book-flip {
+    position: relative; width: 280px; height: 400px; transition: transform 0.6s ease;
+}
+.book-flip.open { transform: translateX(140px); }
+@media (max-width: 700px) {
+    .book-flip { width: 42vw; height: 350px; }
+    .book-flip.open { transform: translateX(21vw); }
+}
+
+.paper {
+    position: absolute; width: 100%; height: 100%; top: 0; left: 0;
+    perspective: 1500px; transform-style: preserve-3d;
+    transform-origin: left center; transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+.paper.flipped { transform: rotateY(-180deg); }
+
+.front, .back {
+    position: absolute; width: 100%; height: 100%; top: 0; left: 0;
+    backface-visibility: hidden; border-radius: 0 12px 12px 0;
+    box-shadow: inset 4px 0 10px rgba(0,0,0,0.05), 2px 2px 8px rgba(0,0,0,0.2);
+    padding: 25px 20px; box-sizing: border-box; display: flex; flex-direction: column;
+}
+
+.back {
+    transform: rotateY(180deg); border-radius: 12px 0 0 12px;
+    box-shadow: inset -4px 0 10px rgba(0,0,0,0.05), -2px 2px 8px rgba(0,0,0,0.2);
+}
+
+.cover-page {
+    background-color: #5d4037; color: #fdf5e6; border: 2px solid #3e2723;
+    justify-content: center; align-items: center; text-align: center;
+}
+
+.content-page {
+    background-color: #fdf5e6; color: #3e2723; border: 1px solid #d7ccc8;
+    background-image: linear-gradient(to right, rgba(0,0,0,0.06) 0%, transparent 6%);
+}
+.back.content-page { background-image: linear-gradient(to left, rgba(0,0,0,0.06) 0%, transparent 6%); }
+
+.book-title { font-size: 1.8rem; color: #a5d6a7; margin-bottom: 5px; font-weight: 700; line-height: 1.2;}
+.book-subtitle { font-size: 0.9rem; font-style: italic; color: #d7ccc8; margin-bottom: 20px; }
+.book-separator-light { height: 2px; width: 60%; background: #a5d6a7; margin: 15px auto; }
+.page-header { font-size: 0.75rem; color: #a1887f; text-align: right; border-bottom: 1px solid #d7ccc8; margin-bottom: 15px; padding-bottom: 5px;}
+.back .page-header { text-align: left; }
+.content-page h3 { font-size: 1.1rem; color: #5d4037; margin-bottom: 10px; }
+.content-page p { font-size: 0.9rem; line-height: 1.5; color: #4e342e; }
+
+.flip-btn { margin-top: auto; padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: background 0.3s; }
+.primary-btn { background: #a5d6a7; color: #1b5e20; width: 100%; padding: 12px; font-size: 1rem;}
+.next-btn { background: #e0e0e0; color: #333; align-self: flex-end; }
+.prev-btn { background: #e0e0e0; color: #333; align-self: flex-start; }
+.flip-btn:hover { background: #ccc; } .primary-btn:hover { background: #81c784; }
+
+/* Tombol Close Silang di Luar Buku 3D */
+.close-book-btn {
+    position: absolute; top: 30px; right: 30px; width: 45px; height: 45px;
+    background-color: #e74c3c; color: #fff; border: 3px solid #fff; border-radius: 50%;
+    font-size: 1.8rem; font-weight: bold; cursor: pointer; z-index: 1005; display: flex;
+    justify-content: center; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    transition: transform 0.2s, background 0.2s;
+}
+.close-book-btn:hover { background-color: #c0392b; transform: scale(1.1); }
+@media (max-width: 700px) {
+    .close-book-btn { top: 15px; right: 15px; width: 35px; height: 35px; font-size: 1.4rem; }
+}

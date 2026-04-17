@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autumn Pot Calc - Dashboard Integral 3D</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body class="light-mode">
+    <div class="background-container" id="backgroundContainer"></div>
+    
+    <div class="tree-wrapper">
+        <svg viewBox="0 0 400 600" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 150 250 Q 300 180 380 220" fill="none" stroke="var(--trunk-color)" stroke-width="22" stroke-linecap="round"/>
+            <circle cx="120" cy="200" r="110" fill="var(--leaf-main)" />
+            <circle cx="210" cy="140" r="130" fill="var(--leaf-alt)" />
+            <circle cx="80" cy="110" r="90" fill="var(--leaf-dark)" />
+            <circle cx="290" cy="170" r="85" fill="var(--leaf-main)" />
+            <circle cx="160" cy="70" r="100" fill="var(--leaf-main)" />
+            <path d="M 110 600 L 170 200 L 130 200 L 60 600 Z" fill="var(--trunk-color)" />
+            <g class="swing-group" style="transform-origin: 310px 200px;">
+                <line x1="280" y1="195" x2="280" y2="450" stroke="var(--rope-color)" stroke-width="3" />
+                <line x1="340" y1="205" x2="340" y2="450" stroke="var(--rope-color)" stroke-width="3" />
+                <rect x="260" y="450" width="100" height="12" rx="6" fill="var(--trunk-color)" />
+            </g>
+        </svg>
+    </div>
+
+    <div class="app-container">
+        <header>
+            <div class="logo">
+                <span class="logo-icon">🌿</span>
+                <h1>Plant Pot Calc</h1>
+            </div>
+            <button id="themeToggle" class="btn-icon">
+                <span class="icon-sun">☀️</span>
+                <span class="icon-moon">🌙</span>
+            </button>
+        </header>
+
+        <main>
+            <div class="card main-card">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchMode('simpel')">Mode Simpel</button>
+                    <button class="tab-btn" onclick="switchMode('kompleks')">Mode Kompleks</button>
+                </div>
+
+                <section id="modeSimpel" class="input-section active">
+                    <h3>Pilih Ukuran Pot</h3>
+                    <div class="grid-options">
+                        <button class="opt-card" onclick="selectSimple('kecil')">
+                            <h4>Kecil</h4>
+                            <p>Ø 10-20 cm</p>
+                        </button>
+                        <button class="opt-card selected" onclick="selectSimple('sedang')">
+                            <h4>Sedang</h4>
+                            <p>Ø 20-35 cm</p>
+                        </button>
+                        <button class="opt-card" onclick="selectSimple('besar')">
+                            <h4>Besar</h4>
+                            <p>Ø 40-50 cm</p>
+                        </button>
+                    </div>
+                </section>
+
+                <section id="modeKompleks" class="input-section">
+                    <h3>Parameter Pot (cm)</h3>
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label>Tinggi Pot (h)</label>
+                            <input type="number" id="hInput" value="30">
+                        </div>
+                        <div class="input-group">
+                            <label>Jari-jari Bawah</label>
+                            <input type="number" id="rBottomInput" value="10">
+                        </div>
+                        <div class="input-group">
+                            <label>Jari-jari Tengah</label>
+                            <input type="number" id="rMidInput" value="15">
+                        </div>
+                        <div class="input-group">
+                            <label>Jari-jari Atas</label>
+                            <input type="number" id="rTopInput" value="12">
+                        </div>
+                    </div>
+                </section>
+
+                <div class="slider-section" style="margin-bottom: 1.5rem; margin-top: 1rem;">
+                    <h3>Visualisasi Partisi (<span id="nValueDisplay">15</span> Irisan)</h3>
+                    <input type="range" id="nInput" min="5" max="100" value="15" oninput="updateNValue(); calculate()" style="width: 100%; cursor: pointer; accent-color: var(--primary);">
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">Geser untuk melihat limit Riemann secara visual.</p>
+                </div>
+
+                <div class="plant-section">
+                    <h3>Parameter Penanaman</h3>
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label>Karakteristik Akar</label>
+                            <select id="plantType">
+                                <option value="dangkal">Dangkal (Cth: Kaktus)</option>
+                                <option value="sedang" selected>Sedang (Cth: Mawar)</option>
+                                <option value="dalam">Dalam (Cth: Pohon)</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Tebal Batang Bawah (cm)</label>
+                            <input type="number" id="stemInput" value="2.5" step="0.5">
+                        </div>
+                    </div>
+                </div>
+
+                <button id="calcBtn" class="btn-primary" onclick="calculate()">
+                    Hitung Sekarang <span id="btnAnim"></span>
+                </button>
+            </div>
+
+            <div id="resultArea" class="result-container hidden">
+                <div class="card visual-card">
+                    <div class="tavern-sign-wrapper" onclick="openFormulaModal()" title="Klik untuk membuka Ruang Rumus!">
+                        <div class="rope rope-left"></div>
+                        <div class="rope rope-right"></div>
+                        <div class="tavern-sign">
+                            <div class="sign-front">
+                                <span>📜 Lihat Rumus</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="visual-header">
+                        <h3>Visualisasi Pot</h3>
+                        <div class="view-toggle">
+                            <button id="btn2D" class="view-btn active" onclick="switchVisualView('2D')">2D</button>
+                            <button id="btn3D" class="view-btn" onclick="switchVisualView('3D')">3D Interaktif</button>
+                        </div>
+                    </div>
+
+                    <div id="canvasContainer" class="canvas-container">
+                        <canvas id="potCanvas"></canvas>
+                        <div id="pot3D" class="hidden"></div>
+                    </div>
+                </div>
+
+                <div class="card stats-card">
+                    <h3>Hasil Analisis</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span>Volume Total</span>
+                            <strong id="resVolCm">0</strong> <small>cm³</small>
+                        </div>
+                        <div class="stat-item">
+                            <span>Kapasitas (Liter)</span>
+                            <strong id="resVolL">0</strong> <small>L</small>
+                        </div>
+                        <div class="stat-item">
+                            <span>Kebutuhan Tanah</span>
+                            <strong id="resSoil">0</strong> <small>kg</small>
+                        </div>
+                        <div class="stat-item">
+                            <span>Kedalaman Tanam</span>
+                            <strong id="resDepth">0</strong> <small>cm</small>
+                        </div>
+                        <div class="stat-item" style="grid-column: span 2; border-bottom: none; padding-top: 10px;">
+                            <span>Diameter Lubang Tanam (Optimal)</span>
+                            <strong id="resHole">0</strong> <small>cm</small>
+                        </div>
+                    </div>
+                    
+                    <button class="btn-secondary" onclick="downloadReport()">
+                        💾 Unduh Gambar Laporan (Hanya 2D)
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <div id="canvasTooltip" class="canvas-tooltip"></div>
+
+    <div id="formulaModal" class="modal-overlay close-state">
+        <div class="modal-content">
+            <button class="close-modal-btn" onclick="closeFormulaModal()">✖</button>
+            
+            <div class="modal-header">
+                <h2>📐 Ruang Rumus Matematika</h2>
+                <p>Konsep kalkulus dan aljabar yang bekerja di balik layar aplikasi ini.</p>
+            </div>
+
+            <div class="modal-body">
+                <div class="formula-card">
+                    <h3>1. Volume Benda Putar (Metode Cakram)</h3>
+                    <p>Aplikasi ini menghitung volume pot (benda melengkung) menggunakan pendekatan <strong>Jumlah Riemann (Midpoint Rule)</strong> secara iteratif di dalam <i>loop</i> JavaScript.</p>
+                    <div class="math-box">
+                        $$ V \approx \sum_{i=1}^{n} \pi (r_i)^2 \Delta y $$
+                    </div>
+                    <ul class="formula-legend">
+                        <li><strong>\(V\)</strong> = Volume total pot (\(cm^3\))</li>
+                        <li><strong>\(n\)</strong> = Jumlah partisi irisan (dinamis dari slider <span id="modN">...</span>)</li>
+                        <li><strong>\(\Delta y\)</strong> = Ketebalan setiap irisan (\(\frac{h}{n}\))</li>
+                        <li><strong>\(r_i\)</strong> = Radius pada titik tengah irisan ke-\(i\)</li>
+                    </ul>
+                </div>
+
+                <div class="formula-card">
+                    <h3>2. Interpolasi Linier (Radius Fleksibel)</h3>
+                    <p>Untuk membentuk kurva pot yang dinamis, jari-jari (\(r\)) dihitung pada setiap ketinggian (\(y\)) menggunakan interpolasi garis lurus antar dua segmen.</p>
+                    <div class="math-box">
+                        <p><strong>Segmen Bawah ke Tengah ( \( y \le \frac{h}{2} \) ) :</strong></p>
+                        $$ r = r_b + (r_m - r_b) \left( \frac{y}{h/2} \right) $$
+                        
+                        <p><strong>Segmen Tengah ke Atas ( \( y > \frac{h}{2} \) ) :</strong></p>
+                        $$ r = r_m + (r_t - r_m) \left( \frac{y - h/2}{h/2} \right) $$
+                    </div>
+                </div>
+
+                <div class="formula-card">
+                    <h3>3. Formula Agrikultur (Penanaman)</h3>
+                    <p>Variabel ini digunakan untuk memvisualisasikan garis indikator <strong>(Hijau & Merah)</strong> di atas kanvas 2D.</p>
+                    <div class="math-box" style="text-align: left; padding-left: 20px;">
+                        $$ D_{tanam} = h \times \text{Faktor}_{akar} $$
+                        <small><em>*Faktor Akar: 0.2 (Dangkal), 0.4 (Sedang), 0.6 (Dalam)</em></small>
+                        <br><br>
+                        $$ \text{Dia.}_{lubang} = \text{Dia.}_{batang} \times \text{Faktor}_{galian} $$
+                        <small><em>*Faktor Galian: 2.0 (Dangkal), 2.5 (Sedang), 3.5 (Dalam)</em></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="gardener-trigger-container" onclick="openGuideBook()">
+        <div class="speech-bubble">
+            <p>Butuh bantuan? Klik saya!</p>
+        </div>
+        <div class="gardener-avatar">👨‍🌾</div>
+    </div>
+
+    <div id="guide-modal" class="modal-overlay close-state" onclick="closeGuideBookOnOutside(event)">
+        <button class="close-book-btn" onclick="closeGuideBook()">&times;</button>
+        
+        <div class="book-wrapper">
+            <div class="book-flip" id="bookFlip">
+                
+                <div class="paper" id="p1" style="z-index: 3;">
+                    <div class="front cover-page">
+                        <h2 class="book-title">Panduan<br>Plant Pot</h2>
+                        <div class="book-separator-light"></div>
+                        <p class="book-subtitle">Buku Pintar Berkebun & Kalkulus</p>
+                        <button class="flip-btn primary-btn" onclick="goNextPage(1)">Buka Buku ➡️</button>
+                    </div>
+                    <div class="back content-page">
+                        <div class="page-header">Hal 1</div>
+                        <h3>🌿 1. Memilih Mode</h3>
+                        <p>Gunakan <strong>Mode Simpel</strong> jika Anda memiliki pot standar dengan ukuran umum yang sudah kami siapkan. Beralihlah ke <strong>Mode Kompleks</strong> untuk merancang pot melengkung artistik secara bebas.</p>
+                        <button class="flip-btn prev-btn" onclick="goPrevPage(1)">⬅️ Tutup Cover</button>
+                    </div>
+                </div>
+
+                <div class="paper" id="p2" style="z-index: 2;">
+                    <div class="front content-page">
+                        <div class="page-header">Hal 2</div>
+                        <h3>📏 2. Input Dimensi</h3>
+                        <p>Masukkan ukuran pot dalam satuan sentimeter (cm). Pada Mode Kompleks, Anda harus memasukkan Jari-jari Bawah, Tengah, dan Atas. Algoritma kami akan menghubungkan ketiga titik tersebut menjadi lekukan 3D yang sangat dinamis.</p>
+                        <button class="flip-btn next-btn" onclick="goNextPage(2)">Balik Kertas ➡️</button>
+                    </div>
+                    <div class="back content-page">
+                        <div class="page-header">Hal 3</div>
+                        <h3>🔄 3. Irisan Riemann</h3>
+                        <p>Geser slider <em>Jumlah Irisan (n)</em>. Sistem akan memotong ruang pot menjadi tumpukan cakram. Semakin banyak partisi yang dibuat, bentuk 3D akan makin mulus, dan hitungan volumenya makin presisi mendekati angka asli!</p>
+                        <button class="flip-btn prev-btn" onclick="goPrevPage(2)">⬅️ Balik Kertas</button>
+                    </div>
+                </div>
+
+                <div class="paper" id="p3" style="z-index: 1;">
+                    <div class="front content-page">
+                        <div class="page-header">Hal 4</div>
+                        <h3>🥕 4. Karakteristik Akar</h3>
+                        <p>Pilih tipe akar (Dangkal/Sedang/Dalam). Sistem otomatis memunculkan <strong>batas Kedalaman Tanam ideal (Titik Merah)</strong> dan <strong>Diameter Lubang Galian (Cincin Hijau)</strong> agar tanaman tidak mengalami busuk akar.</p>
+                        <button class="flip-btn next-btn" onclick="goNextPage(3)">Selesai ➡️</button>
+                    </div>
+                    <div class="back cover-page">
+                        <h2 class="book-title">Selamat<br>Berkebun! 🌻</h2>
+                        <div class="book-separator-light"></div>
+                        <p class="book-subtitle" style="font-size: 0.8rem;">Tekan tombol silang (X) di pojok atau klik di luar buku untuk keluar.</p>
+                        <button class="flip-btn prev-btn" onclick="goPrevPage(3)">⬅️ Baca Lagi</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
