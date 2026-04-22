@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plant Pot Cal  - Dashboard Integral 3D</title>
+    <title>Plant Pot Calc - Dashboard Integral 3D</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
     
@@ -74,18 +74,18 @@
                     <div class="form-grid">
                         <div class="input-group">
                             <label>Tinggi Pot (h)</label>
-                            <input type="number" id="hInput" value="30">
+                            <input type="number" id="hInput" value="20">
                         </div>
                         <div class="input-group">
-                            <label>Jari-jari Bawah</label>
+                            <label>Jari-jari Bawah (r1)</label>
                             <input type="number" id="rBottomInput" value="10">
                         </div>
                         <div class="input-group">
-                            <label>Jari-jari Tengah</label>
+                            <label>Jari-jari Tengah (rm)</label>
                             <input type="number" id="rMidInput" value="15">
                         </div>
                         <div class="input-group">
-                            <label>Jari-jari Atas</label>
+                            <label>Jari-jari Atas (r2)</label>
                             <input type="number" id="rTopInput" value="12">
                         </div>
                     </div>
@@ -175,6 +175,99 @@
                         💾 Unduh Gambar Laporan (Hanya 2D)
                     </button>
                 </div>
+
+                <div class="card" style="padding: 0; overflow: hidden; border: 1px solid var(--primary);">
+                    <div class="detail-header" onclick="toggleDetail()">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.2rem;">🔍</span>
+                            <span>DETAIL PENGERJAAN & PERHITUNGAN</span>
+                        </div>
+                        <span id="detailIcon">▼</span>
+                    </div>
+
+                    <div id="detailContent" class="detail-content">
+                        <div style="padding: 20px;">
+                            
+                            <div class="alert-box">
+                                ⚠️ <strong>Interpolasi aktif (2x)</strong> — kurva pot dibentuk secara dinamis dengan membagi fungsi luasan menjadi 2 segmen terpisah (bawah & atas) agar perhitungan luasan akurat.
+                            </div>
+
+                            <div class="method-card" style="border-left-color: #2980b9;">
+                                <h4>📘 1. Landasan Teori & Rumus</h4>
+                                <p>Perhitungan volume pot ini menggunakan <strong>Metode Cakram (Benda Putar Sumbu Y)</strong>.</p>
+                                <div class="math-step-box" style="background: rgba(41, 128, 185, 0.05); border: 1px solid rgba(41, 128, 185, 0.2);">
+                                    <p style="margin-bottom: 5px;"><strong>• Integral Analitik (Eksak):</strong></p>
+                                    <div style="text-align: center; font-size: 1.1rem; margin-bottom: 15px;">\( V = \pi \int_{a}^{b} [f(y)]^2 dy \)</div>
+                                    
+                                    <p style="margin-bottom: 5px; border-top: 1px dashed rgba(41,128,185,0.3); padding-top: 10px;"><strong>• Pendekatan Numerik (Riemann Midpoint):</strong></p>
+                                    <div style="text-align: center; font-size: 1.1rem;">\( V \approx \sum_{i=1}^{n} \pi (r_i)^2 \Delta y \)</div>
+                                </div>
+                            </div>
+
+                            <div class="method-card" style="border-left-color: #f39c12;">
+                                <h4>📐 2. Perhitungan Integral Analitik (Eksak)</h4>
+                                <p>Sistem merumuskan dua segmen fungsi linier untuk diintegralkan secara presisi (menghasilkan angka pasti).</p>
+                                
+                                <div id="integralStepsContainer"></div>
+                            </div>
+
+                            <div class="method-card">
+                                <h4>🧱 3. Pendekatan Numerik (Cakram Riemann)</h4>
+                                <p>Komputer mensimulasikan pemotongan pot menjadi <span id="detPartisi">15</span> irisan pipih untuk memvalidasi angka integral.</p>
+                                
+                                <div class="math-step-box">
+                                    <p>• Ketebalan Tiap Irisan (Δy) = Tinggi / Partisi = <strong><span id="detDy">0.00</span> cm</strong></p>
+                                    <p style="margin-top: 5px;">• Volume Penjumlahan Numerik ≈ <strong><span id="detVol">0</span> cm³</strong></p>
+                                </div>
+                                
+                                <h5 style="margin-top: 15px; color: var(--text-muted);">Tabel Iterasi (i) Kalkulasi Cakram:</h5>
+                                <div class="table-responsive" style="margin-top: 10px; max-height: 250px;">
+                                    <table id="calcTable">
+                                        <thead>
+                                            <tr>
+                                                <th>i</th>
+                                                <th>Titik Tengah (y)</th>
+                                                <th>Jari-jari (r)</th>
+                                                <th>Volume Irisan (ΔV)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="calcTableBody">
+                                            </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="conclusion-box" style="margin-top: 30px;">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; border-bottom: 2px solid rgba(27,94,32,0.2); padding-bottom: 10px;">
+                                    <span style="font-size: 1.5rem;">📌</span>
+                                    <h4 style="margin: 0;">KESIMPULAN AKHIR</h4>
+                                </div>
+                                
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                    <div style="background: rgba(255,255,255,0.6); padding: 12px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.05);">
+                                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">Volume Asli (Integral Eksak):</p>
+                                        <p style="font-size: 1.1rem;"><strong><span id="concVolEksak">0</span> cm³</strong></p>
+                                        <p style="color: #2e7d32; font-weight: 600; font-size: 0.9rem; margin-top: 3px;">~ <span id="concLiterEksak">0</span> Liter</p>
+                                    </div>
+                                    <div style="background: rgba(255,255,255,0.6); padding: 12px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.05);">
+                                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">Volume Numerik (<span id="concPartisi">15</span> Partisi):</p>
+                                        <p style="font-size: 1.1rem;"><strong><span id="concVol">0</span> cm³</strong></p>
+                                        <p style="color: #2e7d32; font-weight: 600; font-size: 0.9rem; margin-top: 3px;">~ <span id="concLiter">0</span> Liter</p>
+                                    </div>
+                                </div>
+
+                                <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-main);">
+                                    Estimasi Kebutuhan Media Tanam (menggunakan koefisien massa jenis tanah <strong>1,12 kg/L</strong>) berdasarkan volume presisi: <br>
+                                    <span style="display: inline-block; background: #fff; padding: 5px 10px; border-radius: 6px; margin-top: 8px; border: 1px dashed #a5d6a7;">
+                                        <strong><span id="concLiterEksak2">0</span> L × 1,12 = <span id="concBeratEksak" style="color: #d35400;">0</span> kg Tanah</strong>
+                                    </span>
+                                </p>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </main>
     </div>
@@ -184,12 +277,10 @@
     <div id="formulaModal" class="modal-overlay close-state">
         <div class="modal-content">
             <button class="close-modal-btn" onclick="closeFormulaModal()">✖</button>
-            
             <div class="modal-header">
                 <h2>📐 Ruang Rumus Matematika</h2>
                 <p>Konsep kalkulus dan aljabar yang bekerja di balik layar aplikasi ini.</p>
             </div>
-
             <div class="modal-body">
                 <div class="formula-card">
                     <h3>1. Volume Benda Putar (Metode Cakram)</h3>
@@ -199,7 +290,7 @@
                     </div>
                     <ul class="formula-legend">
                         <li><strong>\(V\)</strong> = Volume total pot (\(cm^3\))</li>
-                        <li><strong>\(n\)</strong> = Jumlah partisi irisan (dinamis dari slider <span id="modN">...</span>)</li>
+                        <li><strong>\(n\)</strong> = Jumlah partisi irisan (dinamis dari slider)</li>
                         <li><strong>\(\Delta y\)</strong> = Ketebalan setiap irisan (\(\frac{h}{n}\))</li>
                         <li><strong>\(r_i\)</strong> = Radius pada titik tengah irisan ke-\(i\)</li>
                     </ul>
@@ -233,18 +324,14 @@
     </div>
 
     <div id="gardener-trigger-container" onclick="openGuideBook()">
-        <div class="speech-bubble">
-            <p>Butuh bantuan? Klik saya!</p>
-        </div>
+        <div class="speech-bubble"><p>Butuh bantuan? Klik saya!</p></div>
         <div class="gardener-avatar">👨‍🌾</div>
     </div>
 
     <div id="guide-modal" class="modal-overlay close-state" onclick="closeGuideBookOnOutside(event)">
         <button class="close-book-btn" onclick="closeGuideBook()">&times;</button>
-        
         <div class="book-wrapper">
             <div class="book-flip" id="bookFlip">
-                
                 <div class="paper" id="p1" style="z-index: 3;">
                     <div class="front cover-page">
                         <h2 class="book-title">Panduan<br>Plant Pot</h2>
@@ -259,7 +346,6 @@
                         <button class="flip-btn prev-btn" onclick="goPrevPage(1)">⬅️ Tutup Cover</button>
                     </div>
                 </div>
-
                 <div class="paper" id="p2" style="z-index: 2;">
                     <div class="front content-page">
                         <div class="page-header">Hal 2</div>
@@ -274,7 +360,6 @@
                         <button class="flip-btn prev-btn" onclick="goPrevPage(2)">⬅️ Balik Kertas</button>
                     </div>
                 </div>
-
                 <div class="paper" id="p3" style="z-index: 1;">
                     <div class="front content-page">
                         <div class="page-header">Hal 4</div>
@@ -289,7 +374,6 @@
                         <button class="flip-btn prev-btn" onclick="goPrevPage(3)">⬅️ Baca Lagi</button>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>

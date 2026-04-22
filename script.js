@@ -114,9 +114,6 @@ function updateNValue() {
     if(modN) modN.innerText = `(${nVal})`;
 }
 
-// ==========================================
-// 3. MODAL RUANG RUMUS MATEMATIKA
-// ==========================================
 function openFormulaModal() {
     document.getElementById('formulaModal').classList.remove('close-state');
     if (typeof MathJax !== 'undefined') MathJax.typesetPromise();
@@ -129,7 +126,7 @@ document.getElementById('formulaModal').addEventListener('click', function(e) {
 });
 
 // ==========================================
-// 4. LOGIKA PERHITUNGAN RIEMANN
+// 4. LOGIKA PERHITUNGAN RIEMANN & EKSAK
 // ==========================================
 function switchVisualView(view) {
     currentVisualView = view;
@@ -188,6 +185,7 @@ function calculate(animate = true) {
 
     if (h === 0) return; 
 
+    // Kalkulasi Numerik (Riemann)
     const dy = h / n;
     let totalVolume = 0;
     currentDisks = []; 
@@ -206,7 +204,7 @@ function calculate(animate = true) {
     }
 
     const volL = totalVolume / 1000;
-    const soilKg = volL * 1.2; 
+    const soilKg = volL * 1.12; 
 
     const plant = document.getElementById('plantType').value;
     const stemDia = parseFloat(document.getElementById('stemInput').value) || 2;
@@ -220,7 +218,7 @@ function calculate(animate = true) {
     const holeDia = stemDia * holeFactor;
 
     document.getElementById('resultArea').classList.remove('hidden');
-    document.getElementById('resVolCm').innerText = Math.round(totalVolume).toLocaleString();
+    document.getElementById('resVolCm').innerText = Math.round(totalVolume).toLocaleString('id-ID');
     document.getElementById('resVolL').innerText = volL.toFixed(2);
     document.getElementById('resSoil').innerText = soilKg.toFixed(1);
     document.getElementById('resDepth').innerText = depth.toFixed(1);
@@ -229,9 +227,139 @@ function calculate(animate = true) {
     drawPot(h, rb, rm, rt, n, dy, depth, holeDia);
     if (is3DInitialized) update3D(h, rb, rm, rt, depth, holeDia);
     
+    updateIntegralSteps(h, rb, rm, rt); 
+    updateCalculationTable(currentDisks, dy, totalVolume); 
+    
     if(animate && window.innerWidth < 850 && event && event.type === 'click') {
         document.getElementById('resultArea').scrollIntoView({ behavior: 'smooth' });
     }
+}
+
+function toggleDetail() {
+    const content = document.getElementById('detailContent');
+    const icon = document.getElementById('detailIcon');
+    if (content.classList.contains('hidden')) {
+        content.classList.remove('hidden');
+        icon.innerText = '▼';
+    } else {
+        content.classList.add('hidden');
+        icon.innerText = '◀';
+    }
+}
+
+// ==============================================================
+// MODUL INJEKSI: LANGKAH PENGERJAAN INTEGRAL EKSAK (DIPERBAIKI)
+// ==============================================================
+function updateIntegralSteps(h, rb, rm, rt) {
+    const H = h / 2; // Batas integral Y
+    
+    // Fungsi Helper untuk merapikan angka desimal di LaTeX
+    const fmt = (num) => Number.isInteger(num) ? num.toString() : parseFloat(num.toFixed(4)).toString();
+    const fmtTerm = (coeff, variable) => {
+        if (Math.abs(coeff) < 0.00001) return "";
+        let sign = coeff >= 0 ? "+" : "-";
+        let valStr = fmt(Math.abs(coeff));
+        if (valStr === "1" && variable !== "") valStr = ""; 
+        return ` ${sign} ${valStr}${variable}`;
+    };
+
+    // ------------------------------------
+    // PERHITUNGAN SEGMEN 1
+    // ------------------------------------
+    const m1 = (rm - rb) / H;
+    const a1 = Math.pow(rb, 2);
+    const b1 = 2 * rb * m1;
+    const c1 = Math.pow(m1, 2);
+    const v1_val = Math.PI * (a1 * H + (b1 / 2) * Math.pow(H, 2) + (c1 / 3) * Math.pow(H, 3));
+
+    // ------------------------------------
+    // PERHITUNGAN SEGMEN 2
+    // ------------------------------------
+    const m2 = (rt - rm) / H;
+    const a2 = Math.pow(rm, 2);
+    const b2 = 2 * rm * m2;
+    const c2 = Math.pow(m2, 2);
+    const v2_val = Math.PI * (a2 * H + (b2 / 2) * Math.pow(H, 2) + (c2 / 3) * Math.pow(H, 3));
+
+    const vTot = v1_val + v2_val;
+    const beratEksak = (vTot / 1000) * 1.12;
+
+    // Sintaks diperbaiki dengan mengurangi backslash (\\) agar MathJax dapat membacanya
+    const html = `
+        <div class="math-step-box" style="background: rgba(243, 156, 18, 0.05); border: 1px solid rgba(243, 156, 18, 0.2);">
+            
+            <h5 style="color: #d35400; margin-bottom: 8px; border-bottom: 1px dashed rgba(243,156,18,0.3); padding-bottom: 5px;">
+                A. Langkah Pengerjaan Segmen 1 (Bawah: 0 ≤ y ≤ ${H})
+            </h5>
+            <p style="margin-bottom: 8px;">1. Fungsi Jari-jari: \\( f_1(y) = ${fmt(rb)}${fmtTerm(m1, "y")} \\)</p>
+            <p style="margin-bottom: 4px;">2. Perhitungan Volume:</p>
+            <div style="overflow-x: auto; padding: 5px 0; margin-bottom: 8px; font-size: 0.95rem;">
+                \\[
+                \\begin{aligned}
+                V_1 &= \\pi \\int_{0}^{${H}} (${fmt(rb)}${fmtTerm(m1, "y")})^2 dy \\\\
+                &= \\pi \\int_{0}^{${H}} (${fmt(a1)}${fmtTerm(b1, "y")}${fmtTerm(c1, "y^2")}) dy \\\\
+                &= \\pi \\left[ ${fmt(a1)}y${fmtTerm(b1/2, "y^2")}${fmtTerm(c1/3, "y^3")} \\right]_{0}^{${H}}
+                \\end{aligned}
+                \\]
+            </div>
+            <p>3. Hasil: <strong>\\( V_1 \\approx ${v1_val.toLocaleString('id-ID', {maximumFractionDigits:2})} \\text{ cm}^3 \\)</strong></p>
+            
+            <h5 style="color: #d35400; margin-top: 20px; margin-bottom: 8px; border-bottom: 1px dashed rgba(243,156,18,0.3); padding-bottom: 5px;">
+                B. Langkah Pengerjaan Segmen 2 (Atas: ${H} < y ≤ ${h})
+            </h5>
+            <p style="margin-bottom: 8px;">1. Fungsi Jari-jari: \\( f_2(y) = ${fmt(rm)}${fmtTerm(m2, "(y - " + H + ")")} \\)</p>
+            <p style="margin-bottom: 4px;">2. Perhitungan Volume:</p>
+            <div style="overflow-x: auto; padding: 5px 0; margin-bottom: 8px; font-size: 0.95rem;">
+                \\[
+                \\begin{aligned}
+                V_2 &= \\pi \\int_{${H}}^{${h}} (${fmt(rm)}${fmtTerm(m2, "(y - " + H + ")")})^2 dy \\\\
+                &= \\pi \\int_{${H}}^{${h}} (${fmt(a2)}${fmtTerm(b2, "(y - " + H + ")")}${fmtTerm(c2, "(y - " + H + ")^2")}) dy \\\\
+                &= \\pi \\left[ ${fmt(a2)}(y - ${H})${fmtTerm(b2/2, "(y - " + H + ")^2")}${fmtTerm(c2/3, "(y - " + H + ")^3")} \\right]_{${H}}^{${h}}
+                \\end{aligned}
+                \\]
+            </div>
+            <p>3. Hasil: <strong>\\( V_2 \\approx ${v2_val.toLocaleString('id-ID', {maximumFractionDigits:2})} \\text{ cm}^3 \\)</strong></p>
+            
+            <div style="background: #fdf2e9; padding: 10px; border-radius: 6px; margin-top: 20px; text-align: center; border: 1px solid #e67e22; color: #d35400;">
+                <strong>Volume Total Ekstraksi (V₁ + V₂) = ${vTot.toLocaleString('id-ID', {maximumFractionDigits:2})} cm³</strong>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('integralStepsContainer').innerHTML = html;
+    
+    // Inject variabel ke Kesimpulan Akhir
+    document.getElementById('concVolEksak').innerText = Math.round(vTot).toLocaleString('id-ID');
+    document.getElementById('concLiterEksak').innerText = (vTot / 1000).toFixed(2);
+    document.getElementById('concLiterEksak2').innerText = (vTot / 1000).toFixed(2);
+    document.getElementById('concBeratEksak').innerText = beratEksak.toLocaleString('id-ID', {maximumFractionDigits:2});
+
+    if (typeof MathJax !== 'undefined') MathJax.typesetPromise();
+}
+
+function updateCalculationTable(disks, dy, totalVol) {
+    const n = disks.length;
+    
+    document.getElementById('detPartisi').innerText = n;
+    document.getElementById('concPartisi').innerText = n;
+    document.getElementById('detDy').innerText = dy.toFixed(3);
+    document.getElementById('detVol').innerText = Math.round(totalVol).toLocaleString('id-ID');
+    document.getElementById('concVol').innerText = Math.round(totalVol).toLocaleString('id-ID');
+    document.getElementById('concLiter').innerText = (totalVol / 1000).toFixed(2);
+
+    const tbody = document.getElementById('calcTableBody');
+    tbody.innerHTML = ''; 
+    
+    disks.forEach(d => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${d.i}</td>
+            <td>${d.yMid.toFixed(2)}</td>
+            <td>${d.r.toFixed(2)}</td>
+            <td><strong>${d.vol.toFixed(2)}</strong></td>
+        `;
+        tbody.appendChild(tr);
+    });
 }
 
 // ==========================================
@@ -418,9 +546,6 @@ function update3D(h, rb, rm, rt, depth, holeDia) {
     camera3D.position.set(0, h * 0.8, h * 3); controls3D.target.set(0, 0, 0);
 }
 
-// ==========================================
-// 7. FUNGSI DOWNLOAD GAMBAR
-// ==========================================
 function downloadReport() {
     const potCanvas = document.getElementById('potCanvas');
     const tempCanvas = document.createElement('canvas');
@@ -444,21 +569,15 @@ function downloadReport() {
     ctx.fillText(`Kedalaman Tanam : ${document.getElementById('resDepth').innerText} cm`, 400, 440);
     ctx.fillText(`Diameter Lubang : ${document.getElementById('resHole').innerText} cm`, 400, 480);
     
-    ctx.fillStyle = '#d35400'; ctx.font = 'bold italic 14px "Plus Jakarta Sans", sans-serif'; ctx.fillText('Digenerate oleh Autumn Pot Calc', 400, 520);
+    ctx.fillStyle = '#d35400'; ctx.font = 'bold italic 14px "Plus Jakarta Sans", sans-serif'; ctx.fillText('Digenerate oleh PLant Pot Calc', 400, 520);
 
-    const link = document.createElement('a'); link.download = 'Laporan_AutumnPot.png'; link.href = tempCanvas.toDataURL('image/png'); link.click();
+    const link = document.createElement('a'); link.download = 'Laporan_PlantPot.png'; link.href = tempCanvas.toDataURL('image/png'); link.click();
 }
 
-// ==========================================
-// 8. BUKU PANDUAN 3D (FLIPBOOK)
-// ==========================================
 const guideModal = document.getElementById('guide-modal');
 const totalPapers = 3;
 
-function openGuideBook() {
-    guideModal.classList.remove('close-state');
-}
-
+function openGuideBook() { guideModal.classList.remove('close-state'); }
 function closeGuideBook() {
     guideModal.classList.add('close-state');
     setTimeout(() => {
@@ -470,36 +589,17 @@ function closeGuideBook() {
         }
     }, 400);
 }
-
-function closeGuideBookOnOutside(event) {
-    // Tutup jika yang diklik adalah background gelap atau bungkus luar buku
-    if (event.target === guideModal || event.target.classList.contains('book-wrapper')) {
-        closeGuideBook();
-    }
-}
-
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape' && !guideModal.classList.contains('close-state')) closeGuideBook();
-});
-
+function closeGuideBookOnOutside(event) { if (event.target === guideModal || event.target.classList.contains('book-wrapper')) closeGuideBook(); }
+document.addEventListener('keydown', function(event) { if (event.key === 'Escape' && !guideModal.classList.contains('close-state')) closeGuideBook(); });
 function goNextPage(paperIndex) {
-    const bookFlip = document.getElementById('bookFlip');
-    const paper = document.getElementById('p' + paperIndex);
+    const bookFlip = document.getElementById('bookFlip'); const paper = document.getElementById('p' + paperIndex);
     if (paperIndex === 1) bookFlip.classList.add('open');
-    paper.classList.add('flipped');
-    setTimeout(() => { paper.style.zIndex = paperIndex; }, 300); 
+    paper.classList.add('flipped'); setTimeout(() => { paper.style.zIndex = paperIndex; }, 300); 
 }
-
 function goPrevPage(paperIndex) {
-    const bookFlip = document.getElementById('bookFlip');
-    const paper = document.getElementById('p' + paperIndex);
-    paper.classList.remove('flipped');
-    setTimeout(() => { paper.style.zIndex = totalPapers - paperIndex + 1; }, 300);
+    const bookFlip = document.getElementById('bookFlip'); const paper = document.getElementById('p' + paperIndex);
+    paper.classList.remove('flipped'); setTimeout(() => { paper.style.zIndex = totalPapers - paperIndex + 1; }, 300);
     if (paperIndex === 1) bookFlip.classList.remove('open');
 }
 
-// Inisialisasi Aplikasi Saat Memuat
-window.onload = () => {
-    setupBackground();
-    updateNValue(); 
-};
+window.onload = () => { setupBackground(); updateNValue(); };
